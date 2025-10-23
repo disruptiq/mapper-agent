@@ -1,0 +1,53 @@
+{
+  "agents": [
+    {
+      "name": "raw_single_file_agent",
+      "path": "../raw-one-file-script",
+      "script": "python raw_script.py",
+      "script-output": "output.txt",
+      "output":"raw-file-output.txt"
+    },
+    {
+      "name": "network_mapper_agent",
+      "path": "../network-mapper-agent",
+      "script": "python main.py",
+      "script-output": "output.json",
+      "output":"network-output.json"
+    },
+    {
+      "name": "db_mapper",
+      "path": "../db-mapper-agent",
+      "script": "python main.py",
+      "script-output": "output.json",
+      "output":"db-mapper-output.json"
+    },
+    {
+      "name": "supply_chain_mapper_agent",
+      "path": "../supply-chain-mapper-agent",
+      "script": "python main.py",
+      "script-output": "output.json",
+      "output":"supply-chain-mapper-ouput.json"
+    },
+    {
+      "name": "openapi_mapper",
+      "path": "../openapi-spec-creator-agent",
+      "script": "python main.py",
+      "script-output": "output.yaml",
+      "output":"openapi-spec-output.yaml"
+    },
+    {
+      "name": "obfuscation_checker_agent",
+      "path": "../obfuscation-checker-agent",
+      "script": "python main.py",
+      "script-output": "output.json",
+      "output":"obfuscation-checker-output.json"
+    },
+    {
+      "name": "code_mapper",
+      "path": "../code-mapper",
+      "script": "python map.py",
+      "script-output": "output.txt",
+      "output":"code-mapper-output.json"
+    }
+  ]
+}
