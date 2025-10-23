@@ -24,7 +24,7 @@ python mapper_agent.py
 This will execute the scripts in each configured agent folder, collect their JSON outputs, and print a unified JSON map to stdout.
 
 ## Configuration
-Edit `config.json` to add or modify agent configurations. Each agent should have a path to its folder and a script command to run.
+Edit `config.json` to add or modify agent configurations. Each agent should have a GitHub repository URL, a local path, and a script command to run. On first run, the repositories will be automatically cloned.
 
 ## Results
 The output of the mapper agent is a unified mapped output that combines the results from all individual mapping agents. This output is structured to facilitate further analysis and processing by the organizer agents.

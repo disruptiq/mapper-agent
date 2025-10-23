@@ -9,6 +9,7 @@ import subprocess
 import sys
 import threading
 import time
+import urllib.request
 
 processes = set()
 processes_lock = threading.Lock()
@@ -16,6 +17,39 @@ processes_lock = threading.Lock()
 def load_config(config_path):
     with open(config_path, 'r') as f:
         return json.load(f)
+
+def clone_repo_if_needed(agent):
+    repo_url = agent.get('repo')
+    path = agent['path']
+    if not repo_url:
+        return
+    if os.path.isdir(path):
+        return  # Already exists
+
+    # Check if git is available
+    try:
+        subprocess.run(['git', '--version'], check=True, capture_output=True)
+    except subprocess.CalledProcessError:
+        print("Git is not installed or not in PATH. Please install Git to clone repositories.", file=sys.stderr)
+        sys.exit(1)
+
+    print(f"Cloning {repo_url} to {path}...")
+    try:
+        # Ensure parent directory exists
+        parent_dir = os.path.dirname(path)
+        os.makedirs(parent_dir, exist_ok=True)
+        # Clone the repo
+        subprocess.run(['git', 'clone', repo_url, path], check=True)
+        print(f"Successfully cloned {repo_url}")
+        # Check for requirements.txt and install dependencies
+        requirements_file = os.path.join(path, 'requirements.txt')
+        if os.path.exists(requirements_file):
+            print(f"Installing dependencies for {agent['name']}...")
+            subprocess.run([sys.executable, '-m', 'pip', 'install', '-r', requirements_file], check=True)
+            print(f"Dependencies installed for {agent['name']}")
+    except subprocess.CalledProcessError as e:
+        print(f"Error cloning {repo_url}: {e}", file=sys.stderr)
+        sys.exit(1)
 
 def run_agent(agent, param=None, stop_event=None):
     if stop_event is None:
@@ -131,6 +165,10 @@ def main():
 
     config = load_config(config_path)
     report_data = {}
+
+    # Clone repos if needed
+    for agent in config['agents']:
+        clone_repo_if_needed(agent)
 
     # Archive existing output if present
     output_dir = 'output'

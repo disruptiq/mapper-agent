@@ -1,50 +1,57 @@
 {
   "agents": [
     {
-      "name": "raw_single_file_agent",
-      "path": "../raw-one-file-script",
+      "name": "single_file_creator",
+      "repo": "https://github.com/disruptiq/single-file-creator.git",
+      "path": "agents/single-file-creator",
       "script": "python raw_script.py",
       "script-output": "output.txt",
       "output":"raw-file-output.txt"
     },
     {
       "name": "network_mapper_agent",
-      "path": "../network-mapper-agent",
+      "repo": "https://github.com/disruptiq/network-mapper-agent.git",
+      "path": "agents/network-mapper-agent",
       "script": "python main.py",
       "script-output": "output.json",
       "output":"network-output.json"
     },
     {
-      "name": "db_mapper",
-      "path": "../db-mapper-agent",
+      "name": "db_mapper_agent",
+      "repo": "https://github.com/disruptiq/db-mapper-agent.git", 
+      "path": "agents/db-mapper-agent",
       "script": "python main.py",
       "script-output": "output.json",
       "output":"db-mapper-output.json"
     },
     {
       "name": "supply_chain_mapper_agent",
-      "path": "../supply-chain-mapper-agent",
+      "repo": "https://github.com/disruptiq/supply-chain-mapper-agent.git",
+      "path": "agents/supply-chain-mapper-agent",
       "script": "python main.py",
       "script-output": "output.json",
       "output":"supply-chain-mapper-ouput.json"
     },
     {
       "name": "openapi_mapper",
-      "path": "../openapi-spec-creator-agent",
+      "repo": "https://github.com/disruptiq/openapi-spec-creator-agent.git",
+      "path": "agents/openapi-spec-creator-agent",
       "script": "python main.py",
       "script-output": "output.yaml",
       "output":"openapi-spec-output.yaml"
     },
     {
       "name": "obfuscation_checker_agent",
-      "path": "../obfuscation-checker-agent",
+      "repo": "https://github.com/disruptiq/obfuscation-checker-agent.git",
+      "path": "agents/obfuscation-checker-agent",
       "script": "python main.py",
       "script-output": "output.json",
       "output":"obfuscation-checker-output.json"
     },
     {
       "name": "code_mapper",
-      "path": "../code-mapper",
+      "repo": "https://github.com/disruptiq/code-mapper.git",
+      "path": "agents/code-mapper",
       "script": "python map.py",
       "script-output": "output.txt",
       "output":"code-mapper-output.json"
