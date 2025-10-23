@@ -58,13 +58,17 @@ def run_agent(agent, param=None, stop_event=None):
     script = agent['script']
     name = agent['name']
 
+    # Make param absolute path
+    if param:
+        param = os.path.abspath(param)
+
     # Build the script command
     script_cmd = script
     if param:
         script_cmd += f" {param}"
 
     # Change to the agent directory
-    cwd = os.path.abspath(path)
+    cwd = os.path.abspath(path) 
     # print(f"Running {name} in directory: {cwd}")
     # print(f"Command: {script_cmd}")
 

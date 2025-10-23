@@ -49,12 +49,12 @@
       "output":"obfuscation-checker-output.json"
     },
     {
-      "name": "code_mapper",
-      "repo": "https://github.com/disruptiq/code-mapper.git",
-      "path": "agents/code-mapper",
-      "script": "python map.py",
-      "script-output": "output.txt",
-      "output":"code-mapper-output.json"
+      "_name": "code_mapper",
+      "_repo": "https://github.com/disruptiq/code-mapper.git",
+      "_path": "agents/code-mapper",
+      "_script": "python main.py",
+      "_script-output": "output.txt",
+      "_output":"code-mapper-output.json"
     }
   ]
 }
