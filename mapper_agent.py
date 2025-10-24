@@ -20,8 +20,8 @@ def load_config(config_path):
 
 def clone_repo_if_needed(agent):
     repo_url = agent.get('repo')
-    path = agent['path']
-    if not repo_url:
+    path = agent.get('path')
+    if not repo_url or not path:
         return
     if os.path.isdir(path):
         return  # Already exists
@@ -172,6 +172,8 @@ def main():
 
     # Clone repos if needed
     for agent in config['agents']:
+        if not agent.get('name') or not agent.get('path'):
+            continue
         clone_repo_if_needed(agent)
 
     # Archive existing output if present
@@ -186,10 +188,14 @@ def main():
         with concurrent.futures.ThreadPoolExecutor(max_workers=16) as executor:
             futures = {}
             for agent in config['agents']:
+                if not agent.get('name') or not agent.get('path'):
+                    continue
                 print(f"Running {agent['name']}...")
                 futures[agent['name']] = executor.submit(run_agent, agent, param, stop_event)
 
             for agent in config['agents']:
+                if not agent.get('name') or not agent.get('path'):
+                    continue
                 name = agent['name']
                 output = futures[name].result()
                 if output is not None:
