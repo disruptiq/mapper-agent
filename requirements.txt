@@ -1,0 +1,9 @@
+pyyaml>=6.0
+pathspec==0.12.1
+aiofiles
+python-dotenv
+toml
+requests
+psutil
+colorama>=0.4.6
+
