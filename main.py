@@ -60,7 +60,10 @@ def run_agent(agent, param=None, stop_event=None):
 
     # Make param absolute path
     if param:
-        param = os.path.abspath(param)
+        if os.path.basename(os.path.dirname(os.path.dirname(os.getcwd()))) == 'deepfenceai':
+            param = os.path.abspath(os.path.join('../..', param))
+        else:
+            param = os.path.abspath(param)
 
     # Build the script command
     script_cmd = script
@@ -135,7 +138,10 @@ def run_agent(agent, param=None, stop_event=None):
             print(f"Warning: No output defined for {name}")
             return None
 
-        output_dir = 'output'
+        if os.path.basename(os.path.dirname(os.path.dirname(os.getcwd()))) == 'deepfenceai':
+            output_dir = '../../outputs/mapper-agent'
+        else:
+            output_dir = 'output'
         os.makedirs(output_dir, exist_ok=True)
 
         src = os.path.join(cwd, script_output_file)
@@ -176,13 +182,16 @@ def main():
             continue
         clone_repo_if_needed(agent)
 
-    # Archive existing output if present
-    output_dir = 'output'
-    if os.path.exists(output_dir) and os.listdir(output_dir):
-        timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
-        archive_name = f"output_archive_{timestamp}"
-        shutil.move(output_dir, archive_name)
-        print(f"Existing output moved to {archive_name}")
+    if os.path.basename(os.path.dirname(os.path.dirname(os.getcwd()))) == 'deepfenceai':
+        output_dir = '../../outputs/mapper-agent'
+        # Note: Not archiving the main outputs folder
+    else:
+        output_dir = 'output'
+        if os.path.exists(output_dir) and os.listdir(output_dir):
+            timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+            archive_name = f"output_archive_{timestamp}"
+            shutil.move(output_dir, archive_name)
+            print(f"Existing output moved to {archive_name}")
 
     try:
         with concurrent.futures.ThreadPoolExecutor(max_workers=16) as executor:

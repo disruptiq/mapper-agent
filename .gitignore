@@ -2,3 +2,4 @@ report.json
 output.json
 output*
 agents/
+__pycache__
