@@ -242,7 +242,8 @@ def main():
                 continue
             messages = clone_futures[agent['name']].result()
             for msg in messages:
-                print(msg, end='')
+                print(msg)
+            print()
 
     if os.path.basename(os.path.dirname(os.path.dirname(os.getcwd()))) == 'deepfenceai':
         output_dir = '../../outputs/mapper-agent'
