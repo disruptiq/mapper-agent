@@ -18,6 +18,45 @@ def load_config(config_path):
     with open(config_path, 'r') as f:
         return json.load(f)
 
+def install_dependencies(path, agent_name):
+    # Try uv.lock first if uv is available
+    uv_lock = os.path.join(path, 'uv.lock')
+    if os.path.exists(uv_lock):
+        try:
+            subprocess.run(['uv', '--version'], check=True, capture_output=True)
+            print(f"Installing dependencies for {agent_name} using uv...")
+            subprocess.run(['uv', 'sync'], cwd=path, check=True)
+            print(f"Dependencies installed for {agent_name} using uv")
+            return
+        except subprocess.CalledProcessError:
+            print("uv not available, falling back to pip")
+
+    # Try requirements.txt
+    requirements_file = os.path.join(path, 'requirements.txt')
+    if os.path.exists(requirements_file):
+        print(f"Installing dependencies for {agent_name}...")
+        subprocess.run([sys.executable, '-m', 'pip', 'install', '-r', requirements_file], check=True)
+        print(f"Dependencies installed for {agent_name}")
+        return
+
+    # Try pyproject.toml
+    pyproject_file = os.path.join(path, 'pyproject.toml')
+    if os.path.exists(pyproject_file):
+        print(f"Installing dependencies for {agent_name} from pyproject.toml...")
+        try:
+            subprocess.run([sys.executable, '-m', 'pip', 'install', '-e', '.'], cwd=path, check=True)
+            print(f"Dependencies installed for {agent_name} from pyproject.toml")
+        except subprocess.CalledProcessError:
+            # If editable install fails, try regular install
+            try:
+                subprocess.run([sys.executable, '-m', 'pip', 'install', '.'], cwd=path, check=True)
+                print(f"Dependencies installed for {agent_name} from pyproject.toml")
+            except subprocess.CalledProcessError as e:
+                print(f"Failed to install dependencies from pyproject.toml for {agent_name}: {e}", file=sys.stderr)
+        return
+
+    print(f"No dependency file found for {agent_name}")
+
 def clone_repo_if_needed(agent):
     repo_url = agent.get('repo')
     path = agent.get('path')
@@ -41,12 +80,8 @@ def clone_repo_if_needed(agent):
         # Clone the repo
         subprocess.run(['git', 'clone', repo_url, path], check=True)
         print(f"Successfully cloned {repo_url}")
-        # Check for requirements.txt and install dependencies
-        requirements_file = os.path.join(path, 'requirements.txt')
-        if os.path.exists(requirements_file):
-            print(f"Installing dependencies for {agent['name']}...")
-            subprocess.run([sys.executable, '-m', 'pip', 'install', '-r', requirements_file], check=True)
-            print(f"Dependencies installed for {agent['name']}")
+        # Install dependencies using the robust function
+        install_dependencies(path, agent['name'])
     except subprocess.CalledProcessError as e:
         print(f"Error cloning {repo_url}: {e}", file=sys.stderr)
         sys.exit(1)
