@@ -49,12 +49,12 @@
       "output":"obfuscation-checker-output.json"
     },
     {
-      "_name": "topological_grapher",
-      "_repo": "https://github.com/disruptiq/topological-grapher",
-      "_path": "agents/topological-grapher",
-      "_script": "python main.py",
-      "_script-output": "output/dependency_graph.json",
-      "_output":"topological-grap-output.json"
+      "name": "topological_grapher",
+      "repo": "https://github.com/disruptiq/topological-grapher",
+      "path": "agents/topological-grapher",
+      "script": "python main.py",
+      "script-output": "output/dependency_graph.json",
+      "output":"topological-grap-output.json"
     }
   ]
 }
