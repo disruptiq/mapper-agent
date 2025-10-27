@@ -28,7 +28,7 @@ def install_dependencies(path, agent_name):
             subprocess.run(['uv', 'sync'], cwd=path, check=True)
             print(f"Dependencies installed for {agent_name} using uv")
             return
-        except subprocess.CalledProcessError:
+        except (subprocess.CalledProcessError, FileNotFoundError):
             print("uv not available, falling back to pip")
 
     # Try requirements.txt
