@@ -16,78 +16,93 @@ init()  # Initialize colorama for Windows support
 
 processes = set()
 processes_lock = threading.Lock()
+print_lock = threading.Lock()
 
 def load_config(config_path):
     with open(config_path, 'r') as f:
         return json.load(f)
 
 def install_dependencies(path, agent_name):
+    messages = []
     # Try uv.lock first if uv is available
     uv_lock = os.path.join(path, 'uv.lock')
     if os.path.exists(uv_lock):
         try:
             subprocess.run(['uv', '--version'], check=True, capture_output=True)
-            print(f"{Fore.BLUE}Installing dependencies for {agent_name} using uv...{Style.RESET_ALL}")
-            subprocess.run(['uv', 'sync'], cwd=path, check=True)
-            print(f"{Fore.GREEN}Dependencies installed for {agent_name} using uv{Style.RESET_ALL}")
-            return
+            messages.append(f"{Fore.BLUE}Installing dependencies for {agent_name} using uv...{Style.RESET_ALL}")
+            result = subprocess.run(['uv', 'sync'], cwd=path, check=True, capture_output=True, text=True)
+            messages.append(result.stdout)
+            messages.append(result.stderr)
+            messages.append(f"{Fore.GREEN}Dependencies installed for {agent_name} using uv{Style.RESET_ALL}")
+            return messages
         except (subprocess.CalledProcessError, FileNotFoundError):
-            print(f"{Fore.YELLOW}uv not available, falling back to pip{Style.RESET_ALL}")
+            messages.append(f"{Fore.YELLOW}uv not available, falling back to pip{Style.RESET_ALL}")
 
     # Try requirements.txt
     requirements_file = os.path.join(path, 'requirements.txt')
     if os.path.exists(requirements_file):
-        print(f"{Fore.BLUE}Installing dependencies for {agent_name}...{Style.RESET_ALL}")
-        subprocess.run([sys.executable, '-m', 'pip', 'install', '-r', requirements_file], check=True)
-        print(f"{Fore.GREEN}Dependencies installed for {agent_name}{Style.RESET_ALL}")
-        return
+        messages.append(f"{Fore.BLUE}Installing dependencies for {agent_name}...{Style.RESET_ALL}")
+        result = subprocess.run([sys.executable, '-m', 'pip', 'install', '-r', requirements_file], check=True, capture_output=True, text=True)
+        messages.append(result.stdout)
+        messages.append(result.stderr)
+        messages.append(f"{Fore.GREEN}Dependencies installed for {agent_name}{Style.RESET_ALL}")
+        return messages
 
     # Try pyproject.toml
     pyproject_file = os.path.join(path, 'pyproject.toml')
     if os.path.exists(pyproject_file):
-        print(f"{Fore.BLUE}Installing dependencies for {agent_name} from pyproject.toml...{Style.RESET_ALL}")
+        messages.append(f"{Fore.BLUE}Installing dependencies for {agent_name} from pyproject.toml...{Style.RESET_ALL}")
         try:
-            subprocess.run([sys.executable, '-m', 'pip', 'install', '-e', '.'], cwd=path, check=True)
-            print(f"{Fore.GREEN}Dependencies installed for {agent_name} from pyproject.toml{Style.RESET_ALL}")
+            result = subprocess.run([sys.executable, '-m', 'pip', 'install', '-e', '.'], cwd=path, check=True, capture_output=True, text=True)
+            messages.append(result.stdout)
+            messages.append(result.stderr)
+            messages.append(f"{Fore.GREEN}Dependencies installed for {agent_name} from pyproject.toml{Style.RESET_ALL}")
         except subprocess.CalledProcessError:
             # If editable install fails, try regular install
             try:
-                subprocess.run([sys.executable, '-m', 'pip', 'install', '.'], cwd=path, check=True)
-                print(f"{Fore.GREEN}Dependencies installed for {agent_name} from pyproject.toml{Style.RESET_ALL}")
+                result = subprocess.run([sys.executable, '-m', 'pip', 'install', '.'], cwd=path, check=True, capture_output=True, text=True)
+                messages.append(result.stdout)
+                messages.append(result.stderr)
+                messages.append(f"{Fore.GREEN}Dependencies installed for {agent_name} from pyproject.toml{Style.RESET_ALL}")
             except subprocess.CalledProcessError as e:
-                print(f"{Fore.RED}Failed to install dependencies from pyproject.toml for {agent_name}: {e}{Style.RESET_ALL}", file=sys.stderr)
-        return
+                messages.append(f"{Fore.RED}Failed to install dependencies from pyproject.toml for {agent_name}: {e}{Style.RESET_ALL}")
+        return messages
 
-    print(f"{Fore.YELLOW}No dependency file found for {agent_name}{Style.RESET_ALL}")
+    messages.append(f"{Fore.YELLOW}No dependency file found for {agent_name}{Style.RESET_ALL}")
+    return messages
 
 def clone_repo_if_needed(agent):
+    messages = []
     repo_url = agent.get('repo')
     path = agent.get('path')
     if not repo_url or not path:
-        return
+        return messages
     if os.path.isdir(path):
-        return  # Already exists
+        return messages  # Already exists
 
     # Check if git is available
     try:
         subprocess.run(['git', '--version'], check=True, capture_output=True)
     except subprocess.CalledProcessError:
-        print(f"{Fore.RED}Git is not installed or not in PATH. Please install Git to clone repositories.{Style.RESET_ALL}", file=sys.stderr)
-        sys.exit(1)
+        messages.append(f"{Fore.RED}Git is not installed or not in PATH. Please install Git to clone repositories.{Style.RESET_ALL}")
+        return messages
 
-    print(f"{Fore.BLUE}Cloning {repo_url} to {path}...{Style.RESET_ALL}")
+    messages.append(f"{Fore.BLUE}Cloning {repo_url} to {path}...{Style.RESET_ALL}")
     try:
         # Ensure parent directory exists
         parent_dir = os.path.dirname(path)
         os.makedirs(parent_dir, exist_ok=True)
         # Clone the repo
-        subprocess.run(['git', 'clone', repo_url, path], check=True)
-        print(f"{Fore.GREEN}Successfully cloned {repo_url}{Style.RESET_ALL}")
+        result = subprocess.run(['git', 'clone', repo_url, path], check=True, capture_output=True, text=True)
+        messages.append(result.stdout)
+        messages.append(result.stderr)
+        messages.append(f"{Fore.GREEN}Successfully cloned {repo_url}{Style.RESET_ALL}")
         # Install dependencies using the robust function
-        install_dependencies(path, agent['name'])
+        install_messages = install_dependencies(path, agent['name'])
+        messages.extend(install_messages)
     except subprocess.CalledProcessError as e:
-        print(f"{Fore.RED}Error cloning {repo_url}: {e}{Style.RESET_ALL}", file=sys.stderr)
-        sys.exit(1)
+        messages.append(f"{Fore.RED}Error cloning {repo_url}: {e}{Style.RESET_ALL}")
+    return messages
 
 def run_agent(agent, param=None, stop_event=None):
     if stop_event is None:
@@ -214,11 +229,20 @@ def main():
     config = load_config(config_path)
     report_data = {}
 
-    # Clone repos if needed
-    for agent in config['agents']:
-        if not agent.get('name') or not agent.get('path'):
-            continue
-        clone_repo_if_needed(agent)
+    # Clone repos if needed concurrently
+    with concurrent.futures.ThreadPoolExecutor(max_workers=16) as clone_executor:
+        clone_futures = {}
+        for agent in config['agents']:
+            if not agent.get('name') or not agent.get('path'):
+                continue
+            clone_futures[agent['name']] = clone_executor.submit(clone_repo_if_needed, agent)
+
+        for agent in config['agents']:
+            if not agent.get('name') or not agent.get('path'):
+                continue
+            messages = clone_futures[agent['name']].result()
+            for msg in messages:
+                print(msg, end='')
 
     if os.path.basename(os.path.dirname(os.path.dirname(os.getcwd()))) == 'deepfenceai':
         output_dir = '../../outputs/mapper-agent'
