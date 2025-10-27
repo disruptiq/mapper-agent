@@ -54,7 +54,7 @@
       "path": "agents/topological-grapher",
       "script": "python main.py",
       "script-output": "output/dependency_graph.json",
-      "output":"topological-grap-output.json"
+      "output":"topological-graph-output.json"
     }
   ]
 }
